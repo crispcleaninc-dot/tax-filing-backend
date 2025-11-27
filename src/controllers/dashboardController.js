@@ -21,13 +21,18 @@ class DashboardController {
         try {
             const { businessId } = req.params;
             const { tax_year } = req.query;
-            const hasAccess = await dashboardService.verifyBusinessAccess(
-                req.user.user_id,
-                businessId
-            );
-            if (!hasAccess) {
-                return res.status(403).json({ error: 'Access denied to this business' });
+
+            // Admins can access any business dashboard
+            if (req.user.role !== 'admin') {
+                const hasAccess = await dashboardService.verifyBusinessAccess(
+                    req.user.userId,
+                    businessId
+                );
+                if (!hasAccess) {
+                    return res.status(403).json({ error: 'Access denied to this business' });
+                }
             }
+
             const data = await dashboardService.getBusinessDashboard(
                 businessId,
                 tax_year || new Date().getFullYear()
